@@ -1,0 +1,58 @@
+<!-- app/templates/register.html -->
+{% extends "base.html" %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<h2>註冊</h2>
+<form method="POST" action="{{ url_for('main.register') }}">
+    {{ form.hidden_tag() }}
+    <div>
+        {{ form.username.label }}
+        {{ form.username(size=32) }}
+        {% for error in form.username.errors %}
+            <span class="error">{{ error }}</span>
+        {% endfor %}
+    </div>
+    <div>
+        {{ form.email.label }}
+        {{ form.email(size=32) }}
+        {% for error in form.email.errors %}
+            <span class="error">{{ error }}</span>
+        {% endfor %}
+    </div>
+    <div>
+        {{ form.password.label }}
+        {{ form.password(size=32) }}
+        {% for error in form.password.errors %}
+            <span class="error">{{ error }}</span>
+        {% endfor %}
+    </div>
+    <div>
+        {{ form.confirm_password.label }}
+        {{ form.confirm_password(size=32) }}
+        {% for error in form.confirm_password.errors %}
+            <span class="error">{{ error }}</span>
+        {% endfor %}
+    </div>
+    <!-- 新增電話和地址欄位 -->
+    <div>
+        {{ form.phone.label }}
+        {{ form.phone(size=32) }}
+        {% for error in form.phone.errors %}
+            <span class="error">{{ error }}</span>
+        {% endfor %}
+    </div>
+    <div>
+        {{ form.address.label }}
+        {{ form.address(size=32) }}
+        {% for error in form.address.errors %}
+            <span class="error">{{ error }}</span>
+        {% endfor %}
+    </div>
+    <!-- 結束新增 -->
+    <div>
+        {{ form.submit() }}
+    </div>
+</form>
+{% endblock %}

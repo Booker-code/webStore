@@ -1,0 +1,20 @@
+<!-- app/templates/order_details.html -->
+{% extends "base.html" %}
+
+{% block title %}Order Details{% endblock %}
+
+{% block content %}
+<h2>Order #{{ order.id }}</h2>
+<p>Date: {{ order.created_at.strftime('%Y-%m-%d') }}</p>
+<p>Status: {{ order.status }}</p>
+<ul>
+    {% for item in order.items %}
+        <li>
+            <h3>{{ item.product.name }}</h3>
+            <p>Price: ${{ item.price }}</p>
+            <p>Quantity: {{ item.quantity }}</p>
+        </li>
+    {% endfor %}
+</ul>
+<p>Total: ${{ order.total_amount }}</p>
+{% endblock %}

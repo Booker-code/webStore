@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Panel{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script defer src="{{ url_for('static', filename='scripts.js') }}"></script>
+</head>
+<body>
+    <header>
+        <h1 align="center">Admin Dashboard</h1>
+    </header>
+    <nav>
+        <ul>
+			<li><a href="{{ url_for('main.home') }}">首頁</a></li>
+            <li><a href="{{ url_for('admin.admin_dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('admin.manage_products') }}">Manage Products</a></li>
+            <li><a href="{{ url_for('admin.manage_orders') }}">Manage Orders</a></li>
+            <li><a href="{{ url_for('admin.manage_users') }}">Manage Users</a></li>
+            <li><a href="{{ url_for('main.logout') }}">Logout</a></li>
+        </ul>
+    </nav>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flashes">
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    <footer>
+        <p align="center">&copy; 2024 Admin Panel</p>
+    </footer>
+</body>
+</html>

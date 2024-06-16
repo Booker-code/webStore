@@ -1,0 +1,18 @@
+<!-- app/templates/order_history.html -->
+{% extends "base.html" %}
+
+{% block title %}Order History{% endblock %}
+
+{% block content %}
+<h2>Your Order History</h2>
+<ul>
+    {% for order in orders %}
+        <li>
+            <h3>Order #{{ order.id }} - {{ order.created_at.strftime('%Y-%m-%d') }}</h3>
+            <p>Status: {{ order.status }}</p>
+            <p>Total: ${{ order.total_amount }}</p>
+            <a href="{{ url_for('main.order_details', order_id=order.id) }}">View Details</a>
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}

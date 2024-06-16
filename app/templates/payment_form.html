@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>付款頁面</title>
+</head>
+<body>
+    <form id="payment-form" method="post" action="{{ url }}">
+        {% for key, value in params.items() %}
+            <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endfor %}
+        <button type="submit">前往綠界付款</button>
+    </form>
+</body>
+<script type="text/javascript">
+    document.getElementById("payment-form").submit();
+</script>
+</html>

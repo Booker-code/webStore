@@ -1,0 +1,23 @@
+<!-- app/templates/admin/edit_product.html -->
+{% extends 'admin/admin_base.html' %}
+
+{% block content %}
+    <h1>Edit Product</h1>
+    <form action="{{ url_for('admin.edit_product', product_id=product.id) }}" method="post">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" value="{{ product.name }}" required><br>
+        
+        <label for="type">Type:</label>
+        <select id="type" name="type" required>
+            <option value="男裝" {% if product.type == '男裝' %}selected{% endif %}>男裝</option>
+            <option value="女裝" {% if product.type == '女裝' %}selected{% endif %}>女裝</option>
+            <option value="童裝" {% if product.type == '童裝' %}selected{% endif %}>童裝</option>
+            <option value="運動穿" {% if product.type == '運動穿' %}selected{% endif %}>運動穿</option>
+        </select><br>
+        
+        <label for="price">Price:</label>
+        <input type="text" id="price" name="price" value="{{ product.price }}" required><br>
+        
+        <button type="submit">Update Product</button>
+    </form>
+{% endblock %}

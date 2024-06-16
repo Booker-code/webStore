@@ -1,0 +1,50 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Flask App{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script defer src="{{ url_for('static', filename='scripts.js') }}"></script>
+</head>
+<body>
+    <header>
+        <h1 align="center">歡迎參觀此flask</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('main.home') }}">首頁</a></li>
+            {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('main.cart') }}">購物車</a></li>
+                <li><a href="{{ url_for('main.logout') }}">登出</a></li>
+                <li>{{ session['username'] }}，你好</li>
+                <li><a href="{{ url_for('main.update_profile') }}">更新個人資料</a></li> <!-- 新增連結 -->
+				{% if current_user.is_admin %}
+					<li><a href="{{ url_for('admin.admin_dashboard') }}">Admin Dashboard</a></li>
+				{% endif %}
+            {% else %}
+                <li><a href="{{ url_for('main.login') }}">登入</a></li>
+                <li><a href="{{ url_for('main.register') }}">註冊</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    
+    <!-- Flash 消息顯示區域 -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flashes">
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    <footer>
+        <p align="center">&copy; 2024 test Flask App</p>
+    </footer>
+</body>
+</html>

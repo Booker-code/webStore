@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Checkout{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>Checkout</h1>
+    <h2>Cart Items</h2>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>商 品 圖 片</th>
+                    <th>數 量</th>
+                    <th>產 品 名 稱</th>
+                    <th>尺 寸</th>
+                    <th>金 錢</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_items %}
+                <tr>
+                    <td><img src="{{ item.product.photo }}" alt="{{ item.product.name }}" class="product-image cart-image"></td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.size }}</td>
+                    <td>{{ item.product.price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <p><strong>商品總數量：</strong>{{ cart_items|length }}</p>
+        </div>
+        <div class="col-md-6">
+            <p><strong>商品總金額：</strong>{{ total }}</p>
+        </div>
+    </div>
+    <h2>Order Details</h2>
+    <form method="POST" action="{{ url_for('main.submit_order') }}">
+        <div class="mb-3">
+            <label for="name" class="form-label">取貨名稱:</label>
+            <input type="text" class="form-control" id="name" name="name" value="{{ current_user.username }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label for="address" class="form-label">地址:</label>
+                <input class="form-control" id="address" name="address" value="{{ current_user.address }}" readonly>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="phone" class="form-label">電話:</label>
+            <input class="form-control" type="text"  id="phone" value="{{ current_user.phone }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label for="payment_method" class="form-label">付款方式:</label>
+            <select class="form-select" id="payment_method" name="payment_method" required>
+                <option value="credit_card">信用卡</option>
+                <option value="paypal">行動支付</option>
+                <!-- Add more options if needed -->
+            </select>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Submit Order</button>
+    </form>
+</div>
+{% endblock %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const addressSelect = document.getElementById("address");
+        const manualAddress = document.getElementById("manual-address");
+
+        addressSelect.addEventListener("change", function() {
+            if (this.value === "manual") {
+                manualAddress.style.display = "block";
+            } else {
+                manualAddress.style.display = "none";
+            }
+        });
+    });
+</script>

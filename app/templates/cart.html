@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}購物車{% endblock %}
+
+{% block content %}
+<h1 align="center">購物車</h1>
+{% if cart_items %}
+    <table>
+        <thead>
+            <tr>
+                <th align="center">圖片</th>
+                <th align="center">產品</th>
+                <th align="center">尺寸</th>  <!-- 新增尺寸標題 -->
+                <th align="center">數量</th>
+                <th align="center">價格</th>
+                <th align="center">總額</th>
+                <th align="center">刪除商品</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cart_items %}
+            <tr>
+                <td><img src="{{ item.product.photo }}" alt="{{ item.product.name }}" class="product-image cart-image"></td>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.size }}</td>  <!-- 新增尺寸數據 -->
+                <td>
+                    <form action="{{ url_for('main.update_cart', item_id=item.id) }}" method="post">
+                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1">
+                        <button type="submit">更新</button>
+                    </form>
+                </td>
+                <td>${{ item.product.price }}</td>
+                <td>${{ item.product.price|int * item.quantity|int }}</td>
+                <td>
+                    <form action="{{ url_for('main.remove_from_cart', item_id=item.id) }}" method="post">
+                        <button type="submit">刪除</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <h2>總金額: ${{ total }}</h2>
+    <a href="{{ url_for('main.checkout') }}">結帳</a>
+{% else %}
+    <p>您的購物車是空的。</p>
+{% endif %}
+{% endblock %}

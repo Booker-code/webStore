@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<nav>
+    <ul>
+        <li><a href="{{ url_for('main.home') }}">Home</a></li>
+        <li><a href="{{ url_for('main.category', category='女裝') }}">女裝</a></li>
+        <li><a href="{{ url_for('main.category', category='男裝') }}">男裝</a></li>
+        <li><a href="{{ url_for('main.category', category='童裝') }}">童裝</a></li>
+        <li><a href="{{ url_for('main.category', category='運動穿') }}">運動穿</a></li>
+    </ul>
+</nav>
+
+<section class="product-detail" style="display: flex; justify-content: center; margin-top: 20px;">
+    <div class="product-card" style="display: flex; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 990px; width: 50%;">
+        <div class="product-image" style="flex: 1 1 30%; margin-right: 20px;">
+            <img src="{{ product.photo }}" alt="{{ product.name }}" style="width: 100%; border-radius: 8px;">
+        </div>
+        <div class="product-info" style="flex: 1 1 70%;">
+            <h1 align="center">{{ product.name }}</h1>
+            <p class="product-price" style="font-size: 24px; color: #b12704;" align="center">NT${{ product.price }}</p>
+            <form action="{{ url_for('main.add_to_cart', product_id=product.id) }}" method="post" style="margin-top: 50px;" align="center">
+                <label for="size">尺寸:</label>
+                <select id="size" name="size" style="margin-bottom: 20px;">
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" style="background-color: #ff6600; color: #fff; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">加入購物車</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<section class="recommended-products" style="margin-top: 40px;">
+    <h2 style="text-align: center;">推薦商品</h2>
+    <div class="product-list" style="display: flex; flex-wrap: wrap; justify-content: center;">
+        {% for product in recommended_products %}
+            <div class="product-item" style="width: 15%; padding: 10px; box-sizing: border-box; text-align: center;">
+                <a href="{{ url_for('main.product_detail', product_id=product.id) }}">
+                    <img src="{{ product.photo }}" alt="{{ product.name }}" class="product-image" style="width: 100%; border-radius: 8px;">
+                </a>
+                <h3 class="product-name">{{ product.name }}</h3>
+                <p class="product-price">NT${{ product.price }}</p>
+                <form action="{{ url_for('main.add_to_cart', product_id=product.id) }}" method="post" class="add-to-cart-form">
+                    <input type="hidden" name="quantity" value="1">
+                    <button type="submit" class="add-to-cart-btn" style="background-color: #ff6600; color: #fff; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer;">加入購物車</button>
+                </form>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

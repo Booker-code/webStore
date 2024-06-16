@@ -1,0 +1,171 @@
+
+body {
+            background: url('/static/image/bg1.jpeg');
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+            background-size: cover;
+        }
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    background-color: #fff;
+    border-bottom: 1px solid #ddd;
+}
+
+nav ul li {
+    margin: 0;
+    padding: 1rem;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: #333;
+}
+
+.product-filter {
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 1rem;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+.latest-products {
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.product-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-around;
+    margin: 0 10%;
+}
+
+.product-item {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+    width: 20%;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+	display: flex;
+	flex-direction: column;
+    justify-content: space-between;
+}
+
+.product-item .product-info {
+    flex-grow: 1; /* 讓產品信息占滿剩餘空間 */
+}
+
+.product-item .product-price {
+    margin-top: auto; /* 將價格推到底部 */
+}
+
+.product-item:hover {
+    transform: translateY(-5px);
+}
+
+.product-image {
+    width: 100%;
+    height: auto;
+}
+
+.product-name {
+    font-size: 1.1rem;
+    color: #333;
+    margin: 0.5rem 0;
+}
+
+.product-price {
+    color: #e74c3c;
+    font-size: 1.2rem;
+    margin: 0.5rem 0;
+}
+
+.add-to-cart-form {
+    margin: 0.5rem 0;
+}
+
+.add-to-cart-btn {
+    background-color: #e74c3c;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.add-to-cart-btn:hover {
+    background-color: #c0392b;
+}
+
+.ads-banner {
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 1rem;
+    margin: 1rem 0;
+    text-align: center;
+    border-top: 1px solid #ddd;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+}
+
+.pagination li {
+    margin: 0 0.5rem;
+}
+
+.pagination li a {
+    text-decoration: none;
+    color: #333;
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.pagination li a:hover {
+    background-color: #f0f0f0;
+}
+table {
+    width: 100%;
+    border-collapse: collapse; /* Merge borders between cells */
+}
+
+th, td {
+    text-align: center; /* Center-align the content within table cells */
+    padding: 10px; /* Adjust padding for better spacing */
+    border: 1px solid #ddd; /* Add border to cells for separation */
+}
+
+/* Style the buttons to match the table layout */
+button {
+    padding: 6px 12px;
+    border: none;
+    background-color: #e74c3c;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #c0392b;
+}
+.cart-image {
+    width: 100px; /* Set a specific width for the images */
+    height: auto; /* Maintain aspect ratio */
+}
