@@ -1,8 +1,7 @@
-<!-- update_profile.html -->
 <!DOCTYPE html>
 {% extends "base.html" %}
 
-{% block title %}Register{% endblock %}
+{% block title %}更新個人資料{% endblock %}
 
 {% block content %}
 <html lang="en">
@@ -10,27 +9,95 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
+    <style>
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto; /* Center the form horizontally */
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center; /* Center the form content */
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center the form fields and labels */
+            margin-bottom: 15px;
+            text-align: left;
+            width: 100%;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            width: 100%;
+            max-width: 300px;
+            text-align: left;
+        }
+
+        input[type="text"], input[type="email"], input[type="password"], textarea {
+            width: 100%;
+            max-width: 300px; /* Control the max width of the input fields */
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin: 0 auto; /* Center the input fields */
+        }
+
+        button {
+            background-color: #007bff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            width: 100%;
+            max-width: 300px; /* Control the max width of the button */
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>更新個人資料</h1>
-    <form method="POST" action="{{ url_for('main.update_profile') }}">
-        {{ form.hidden_tag() }}
-        <label for="username">帳號:</label>
-        <input type="text" id="username" name="username" value="{{ form.username.data }}" required>
-        <br>
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" value="{{ form.email.data }}" required>
-        <br>
-        <label for="password">密碼:</label>
-        <input type="password" id="password" name="password" required>
-        <br>
-        <label for="phone">電話:</label>
-        <input type="text" id="phone" name="phone" value="{{ form.phone.data }}">
-        <br>
-        <label for="address">地址:</label>
-        <textarea id="address" name="address">{{ form.address.data }}</textarea>
-        <br>
-        <button type="submit">更新資料</button>
-    </form>
+    <div class="form-container">
+        <h1>更新個人資料</h1>
+        <form method="POST" action="{{ url_for('main.update_profile') }}">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                <label for="username">帳號:</label>
+                <input type="text" id="username" name="username" value="{{ form.username.data }}" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" value="{{ form.email.data }}" required>
+            </div>
+            <div class="form-group">
+                <label for="password">密碼:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">電話:</label>
+                <input type="text" id="phone" name="phone" value="{{ form.phone.data }}">
+            </div>
+            <div class="form-group">
+                <label for="address">地址:</label>
+                <textarea id="address" name="address">{{ form.address.data }}</textarea>
+            </div>
+            <button type="submit">更新資料</button>
+        </form>
+    </div>
 </body>
 </html>
+{% endblock %}

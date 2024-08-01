@@ -1,12 +1,14 @@
 # app/__init__.py
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_mail import Mail
+import os
 import logging
 from logging.handlers import RotatingFileHandler
-import os
-from flask_mail import Mail
-    
+from datetime import timedelta
+
 db = SQLAlchemy()
 login_manager = LoginManager()
 mail = Mail()
@@ -17,7 +19,6 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     mail.init_app(app)
-    
     if not app.debug:
         if not os.path.exists('logs'):
             os.mkdir('logs')

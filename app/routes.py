@@ -1,37 +1,47 @@
 # app/routes.py
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app as app
 from flask_login import login_user, logout_user, login_required, current_user
-from app.models import User, Product, Order, OrderItem
-from app.forms import RegistrationForm, LoginForm, ForgotPasswordForm
-from app.emails import send_verification_email, send_password_reset_email
+from app.models import User, Product, Order,OrderItem
+from app.forms import RegistrationForm, LoginForm, ForgotPasswordForm,ContactForm
+from app.emails import send_verification_email, send_password_reset_email,send_contact_email
 from . import db, login_manager
-from sqlalchemy.exc import IntegrityError
-from flask import Flask
-from flask import session
+from flask import session,abort
 from app.forms import ResetPasswordForm
-from flask import abort
-from datetime import datetime
 from app.forms import UpdateProfileForm
+import urllib.parse
 import hashlib
-
+from datetime import datetime
+import random
 
 bp = Blueprint('main', __name__)
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
-MERCHANT_ID = '你的商店ID'
-HASH_KEY = 'ejCk326UnaZWKisg'
-HASH_IV = 'q9jcZX8Ib9LM8wYk'
-RETURN_URL = 'https://git.heroku.com/guangtest.git'  # 綠界付款完成後返回的URL
-CLIENT_BACK_URL = 'https://git.heroku.com/guangtest.git/checkout'  # 使用者取消付款返回的URL
-ORDER_URL = 'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5'  # 綠界測試環境的付款URL
+MERCHANT_ID = '3002607'
+HASH_KEY = 'pwFHCqoQZGmho4w6'
+HASH_IV = 'EkRm7iFT261dpevs'
 
+CLIENT_BACK_URL = 'https://xietest-756a0f33c6db.herokuapp.com/checkout'  
+ORDER_URL = 'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5'  
+
+"""---------------------------------------首頁相關設定---------------------------------------"""
 @bp.route('/')
 def home():
     category = request.args.get('category', 'all')
     if category == 'all':
         products = Product.query.all()
     else:
-        products = Product.query.filter_by(type=category).all()  # 使用 type 字段過濾
-    return render_template('home.html', products=products)
+        products = Product.query.filter_by(type=category).all()
+
+    all_products = Product.query.all()
+    if len(all_products) > 8:
+        recommended_products = set()
+        while len(recommended_products) < 8:
+            recommended_products.add(random.choice(all_products))
+        recommended_products = list(recommended_products)
+    else:
+        recommended_products = all_products
+
+    return render_template('home.html', products=products, recommended_products=recommended_products)
+
 
 @bp.route('/product/<int:product_id>')
 def product_detail(product_id):
@@ -44,38 +54,64 @@ def category(category):
     products = Product.query.filter_by(type=category).all()
     return render_template('category.html', products=products)
 
+"""---------------------------------------註冊系統---------------------------------------"""
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
-    if form.validate_on_submit():
-        existing_email = User.query.filter_by(email=form.email.data).first()
-        if existing_email:
-            flash('This email address is already registered. Please use a different email.', 'danger')
-            return redirect(url_for('main.register'))
-        existing_username = User.query.filter_by(username=form.username.data).first()
-        if existing_username:
-            flash('This username is already taken. Please choose a different username.', 'danger')
-            return redirect(url_for('main.register'))
-        user = User(username=form.username.data, email=form.email.data)
-        user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
-        send_verification_email(user)
-        flash('Congratulations, you are now a registered user! Please check your email for verification instructions.', 'success')
-        return redirect(url_for('main.login'))
-    return render_template('register.html', title='Register', form=form)
+    
+    try:
+        if form.validate_on_submit():
+            existing_email = User.query.filter_by(email=form.email.data).first()
+            if existing_email:
+                flash('This email address is already registered. Please use a different email.', 'danger')
+                return redirect(url_for('main.register'))
+            
+            existing_username = User.query.filter_by(username=form.username.data).first()
+            if existing_username:
+                flash('This username is already taken. Please choose a different username.', 'danger')
+                return redirect(url_for('main.register'))
+            
+            verification_code = generate_verification_code()
+            user = User(username=form.username.data, email=form.email.data,address=form.address.data,phone=form.phone.data, verification_code=verification_code)
+            user.set_password(form.password.data)
+            db.session.add(user)
+            db.session.commit()
+            
+            send_verification_email(user)
+            
+            flash('Congratulations, you are now a registered user! Please check your email for verification instructions.', 'success')
+            return redirect(url_for('main.verify_email', email=form.email.data))
+        
+        return render_template('register.html', title='Register', form=form)
+    
+    except Exception as e:
+        flash(f'Registration failed. Please try again. Error: {str(e)}', 'danger')
+        return redirect(url_for('main.register'))
 
-@bp.route('/verify_email/<token>')
-def verify_email(token):
-    user = User.verify_reset_token(token)
-    if user is None:
-        flash('That is an invalid or expired token', 'warning')
-        return redirect(url_for('main.home'))
-    user.email_verified = True
-    db.session.commit()
-    flash('Your account has been verified!', 'success')
-    return redirect(url_for('main.home'))
+"""---------------------------------------驗證---------------------------------------"""
+@bp.route('/verify_email', methods=['GET', 'POST'])
+def verify_email():
+    email = request.args.get('email')
+    user = User.query.filter_by(email=email).first_or_404()
+    if request.method == 'POST':
+        verification_code = request.form.get('verification_code')
+        if user.verification_code == verification_code:
+            user.email_verified = True
+            user.verification_code = None
+            db.session.commit()
+            flash('Your account has been verified!', 'success')
+            return redirect(url_for('main.login'))
+        else:
+            flash('Invalid verification code. Please try again.', 'danger')
+    return render_template('verify_email.html', email=email)
 
+def generate_verification_code(length=6):
+    import random
+    import string
+    letters_and_digits = string.ascii_letters + string.digits
+    return ''.join(random.choice(letters_and_digits) for i in range(length))
+
+"""---------------------------------------登入系統---------------------------------------"""
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -86,8 +122,12 @@ def login():
             return redirect(url_for('main.register'))
         elif user and not user.check_password(form.password.data):
             flash('信箱或密碼有誤，請在確認你的信箱與密碼!!!.', 'danger')
+        elif not user.email_verified:
+            flash('Your email is not verified. Please check your email for verification instructions.', 'warning')
+            return redirect(url_for('main.verify_email', email=user.email))
         else:
-            login_user(user)
+            login_user(user, remember=True)
+            session.permanent = True
             session['username'] = user.username
             flash('登入成功!!!', 'success')
             return redirect(url_for('main.home'))
@@ -117,7 +157,7 @@ def forgot_password():
 
 @bp.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):  
-    app.logger.info("Reset password route triggered.")  # 添加日誌
+    app.logger.info("Reset password route triggered.")  
     form = ResetPasswordForm()
     if form.validate_on_submit():
         user = User.verify_reset_token(token)
@@ -134,6 +174,7 @@ def reset_password(token):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+"""---------------------------------------個人資料更新---------------------------------------"""
 @bp.route('/update_profile', methods=['GET', 'POST'])
 @login_required
 def update_profile():
@@ -142,19 +183,37 @@ def update_profile():
         current_user.username = form.username.data
         current_user.email = form.email.data
         current_user.set_password(form.password.data)
-        current_user.phone = form.phone.data  # 新增電話
-        current_user.address = form.address.data  # 新增地址
+        current_user.phone = form.phone.data  
+        current_user.address = form.address.data  
         db.session.commit()
-        flash('Your profile has been updated successfully!', 'success')
+        flash('更改成功!', 'success')
         return redirect(url_for('main.home'))
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.email.data = current_user.email
-        form.phone.data = current_user.phone  # 在 GET 請求中將電話填入表單
-        form.address.data = current_user.address  # 在 GET 請求中將地址填入表單
+        form.phone.data = current_user.phone  
+        form.address.data = current_user.address 
     return render_template('update_profile.html', title='Update Profile', form=form)
 
+"""---------------------------------------聯絡我們----------------------------------------------"""
+@bp.route('/contact', methods=['GET', 'POST'])
+def contact():
+    form = ContactForm()
+    if current_user.is_authenticated:
+        form.name.data = current_user.username
+        form.email.data = current_user.email
 
+    if form.validate_on_submit():
+        name = form.name.data
+        email = form.email.data
+        message = form.message.data
+        send_contact_email(name, email, message)
+        flash('成功送出表單!', 'success')
+        return redirect(url_for('main.home'))
+    
+    return render_template('contact.html', title='Contact Us', form=form)
+
+"""---------------------------------------購物車系統----------------------------------------------"""
 @bp.route('/cart')
 @login_required
 def cart():
@@ -167,7 +226,7 @@ def cart():
                 cart_items.append({
                     'product': product,
                     'quantity': item['quantity'],
-                    'size': item.get('size', 'N/A'),  # 使用 get 方法以防止 KeyError
+                    'size': item.get('size', 'N/A'), 
                     'id': item['id']
                 })
                 total += int(product.price) * int(item['quantity'])
@@ -181,7 +240,7 @@ def add_to_cart(product_id):
     size = request.form.get('size')
     cart = session.get('cart', [])
 
-    # 檢查購物車中是否已經存在相同的產品，如果存在，增加數量
+  
     for item in cart:
         if item['product_id'] == product.id and item['size'] == size:
             item['quantity'] += quantity
@@ -189,7 +248,6 @@ def add_to_cart(product_id):
             session['cart'] = cart
             return redirect(url_for('main.home'))
 
-    # 如果購物車中沒有相同的產品，則新增一個新的項目
     cart.append({
         'product_id': product.id,
         'quantity': quantity,
@@ -200,7 +258,7 @@ def add_to_cart(product_id):
     flash('商品已添加到購物車')
     return redirect(url_for('main.home'))
 
-
+#更新數量
 @bp.route('/update_cart/<int:item_id>', methods=['POST'])
 @login_required
 def update_cart(item_id):
@@ -210,22 +268,23 @@ def update_cart(item_id):
             item['quantity'] = quantity
             break
     session.modified = True
-    flash('Cart updated.', 'success')
+    flash('購物車更新.', 'success')
     return redirect(url_for('main.cart'))
-
+#移除
 @bp.route('/remove_from_cart/<int:item_id>', methods=['POST'])
 @login_required
 def remove_from_cart(item_id):
     session['cart'] = [item for item in session['cart'] if item['id'] != item_id]
     session.modified = True
-    flash('Item removed from cart.', 'success')
+    flash('商品已移除.', 'success')
     return redirect(url_for('main.cart'))
-
+#登入確認
 @login_manager.unauthorized_handler
 def unauthorized_callback():
     flash('請先登入')
     return redirect(url_for('main.login'))
 
+"""---------------------------------------結帳介面----------------------------------------------"""
 @bp.route('/checkout')
 @login_required
 def checkout():
@@ -242,89 +301,197 @@ def checkout():
                     'id': item['id']
                 })
                 total += int(product.price) * int(item['quantity'])
+    
     return render_template('checkout.html', cart_items=cart_items, total=total)
 
+def generate_check_mac_value(params, hash_key, hash_iv):
+    sorted_params = sorted(params.items())
+    encoded_params = urllib.parse.urlencode(sorted_params, safe='()')
+    raw = f"HashKey={hash_key}&{encoded_params}&HashIV={hash_iv}"
+    encoded_raw = urllib.parse.quote_plus(raw).lower()
+    check_mac_value = hashlib.md5(encoded_raw.encode('utf-8')).hexdigest().upper()
+    return check_mac_value
+
+"""---------------------------------------綠界結帳SDK----------------------------------------------"""
 @bp.route('/submit_order', methods=['POST'])
 @login_required
 def submit_order():
-    if request.method == 'POST':
-        name = request.form['name']
-        address = request.form['address']
-        phone = request.form['phone']
-        payment_method = request.form['payment_method']
-        payment_status = request.form['payment_status']
+    if 'cart' not in session :
+        flash('購物車是空的，無法結帳。', 'error')
+        return redirect(url_for('main.checkout'))
 
-        # Check if 'cart' exists in session and if it's not empty
-        if 'cart' not in session or not session['cart']:
-            flash('Your shopping cart is empty!', 'warning')
-            return redirect(url_for('main.home'))
+    cart_items = []
+    total = 0
+    for item in session['cart']:
+        product = Product.query.get(item['product_id'])
+        if product:
+            cart_items.append({
+                'product': product,
+                'quantity': item['quantity'],
+                'size': item.get('size', 'N/A'),
+                'id': item['id']
+            })
+            total += int(product.price) * int(item['quantity'])
+                    
+    from datetime import datetime
+    import importlib.util
+    import os
+    relative_path = "app/ecpay_payment_sdk.py"
+    absolute_path = os.path.join(os.getcwd(), relative_path)
 
-        total_amount = 0.0
+    spec = importlib.util.spec_from_file_location("ecpay_payment_sdk", absolute_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
 
-        try:
-            # Calculate total amount
+    order_number = datetime.now().strftime("NO%Y%m%d%H%M%S")
+    order_data = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+    order_params = {
+        'MerchantTradeNo': order_number,
+        'StoreID': '',
+        'MerchantTradeDate': order_data,
+        'PaymentType': 'aio',
+        'TotalAmount': total,
+        'TradeDesc': '訂單測試',
+        'ItemName': product.name,
+        'ReturnURL': 'https://www.ecpay.com.tw/return_url.php',
+        'ChoosePayment': 'ALL',
+        'ClientBackURL': '',
+        'ItemURL': 'https://www.ecpay.com.tw/item_url.php',
+        'Remark': '交易備註',
+        'ChooseSubPayment': '',
+        'OrderResultURL': url_for('main.finish_order', _external=True),
+        'NeedExtraPaidInfo': 'Y',
+        'DeviceSource': '',
+        'IgnorePayment': '',
+        'PlatformID': '',
+        'InvoiceMark': 'N',
+        'CustomField1': '',
+        'CustomField2': '',
+        'CustomField3': '',
+        'CustomField4': '',
+        'EncryptType': 1,
+    }
+
+    extend_params_1 = {
+        'ExpireDate': 7,
+        'PaymentInfoURL': 'https://www.ecpay.com.tw/payment_info_url.php',
+        'ClientRedirectURL': '',
+    }
+
+    extend_params_2 = {
+        'StoreExpireDate': 15,
+        'Desc_1': '',
+        'Desc_2': '',
+        'Desc_3': '',
+        'Desc_4': '',
+        'PaymentInfoURL': 'https://www.ecpay.com.tw/payment_info_url.php',
+        'ClientRedirectURL': '',
+    }
+
+    extend_params_3 = {
+        'BindingCard': 0,
+        'MerchantMemberID': '',
+    }
+
+    extend_params_4 = {
+        'Redeem': 'N',
+        'UnionPay': 0,
+    }
+
+    inv_params = {
+    }
+
+    # 建立實體
+    ecpay_payment_sdk = module.ECPayPaymentSdk(
+        MerchantID='3002607',
+        HashKey='pwFHCqoQZGmho4w6',
+        HashIV='EkRm7iFT261dpevs'
+    )
+
+    # 合併延伸參數
+    order_params.update(extend_params_1)
+    order_params.update(extend_params_2)
+    order_params.update(extend_params_3)
+    order_params.update(extend_params_4)
+
+    # 合併發票參數
+    order_params.update(inv_params)
+
+    try:
+        final_order_params = ecpay_payment_sdk.create_order(order_params)
+        action_url = 'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5'  # 測試環境
+        html = ecpay_payment_sdk.gen_html_post_form(action_url, final_order_params)
+        return render_template('submit_order.html', service_url=action_url, parameters=final_order_params)
+    except Exception as error:
+        print('An exception happened: ' + str(error))
+        flash('交易過程中發生錯誤，請稍後再試。', 'error')
+        import sys
+        app.logger.error(f'An exception happened: {error} at line {sys.exc_info()[-1].tb_lineno}', exc_info=True)
+        return redirect(url_for('main.home'))
+
+"""---------------------------------------訂單確認、寄送訂單資訊----------------------------------------------"""    
+@bp.route('/finish_order', methods=['GET', 'POST'])
+@login_required
+def finish_order():
+    cart_items = []
+    total = 0
+    order_number = None
+    number = []
+    try:
+        order_number = datetime.now().strftime("NO%Y%m%d%H%M%S")
+        session['order_number']=order_number
+        if 'cart' in session:
             for item in session['cart']:
-                product = Product.query.get(item['product_id'])  # Retrieve product from database
+                product = Product.query.get(item['product_id'])
                 if product:
-                    total_amount += int(product.price) * int(item['quantity'])
-        except KeyError:
-            flash('There was an error processing your order. Please try again later.', 'danger')
-            return redirect(url_for('main.home'))
+                    cart_item = {
+                        'product': product,
+                        'quantity': item['quantity'],
+                        'size': item.get('size', 'N/A'),
+                        'price': product.price,
+                        'subtotal': int(product.price) * int(item['quantity'])
+                    }
+                    cart_items.append(cart_item)
+                    total += cart_item['subtotal']
+                    number.append(order_number)
+                    
+                    new_order = Order(
+                        user_id=current_user.id,
+                        total_amount=total,
+                        status='Pending', 
+                        created_at=datetime.now(),
+                        size=cart_item['size'],
+                        order_number=order_number)
+                    db.session.add(new_order)
+                    db.session.commit() 
+                    for cart_item in cart_items:
+                            ot = OrderItem(
+                                order_id=new_order.id,
+                                product_id=cart_item['product'].id,
+                                product_name=cart_item['product'].name,
+                                quantity=cart_item['quantity'],
+                                size=cart_item['size'],
+                                price=cart_item['price'],
+                                subtotal=total)
+                            db.session.add(ot)
+                    db.session.commit()
 
-    #     Create a new Order instance
-    #     new_order = Order(user_id=current_user.id, total_amount=total_amount, status=payment_status)
-    #     db.session.add(new_order)
-    #     db.session.commit()
+            from .emails import finishshop
+            finishshop(current_user, cart_items, total, order_number)
+              
+            session.pop('cart', None)
+            
+            flash('訂單已完成，確認信已發送至您的電子郵件。', 'success')
+            return render_template('FinishOrder.html', cart_items=cart_items, order_number=order_number, total=total)
 
-    #     # Get the newly created order's id
-    #     order_id = new_order.id
+    except Exception as error:
+        db.session.rollback()
+        app.logger.error(f'An exception happened: {error}', exc_info=True)
+        flash('訂單完成過程中發生錯誤。', 'error')
 
-    #     # Save order details to OrderItem table (assuming you have items in the cart)
-    #     for item in session['cart']:
-    #         product_id = item['product_id']
-    #         quantity = item['quantity']
-    #         price = Product.query.get(product_id).price  # Retrieve product price from database
-    #         order_item = OrderItem(order_id=order_id, product_id=product_id, quantity=quantity, price=price)
-    #         db.session.add(order_item)
-        
-    #     # Clear the shopping cart after the order has been submitted
-    #     session.pop('cart', None)
+    return redirect(url_for('main.home'))
 
-    #     # Commit all changes to the database
-    #     db.session.commit()
-
-    #     # Construct the data to be sent to ECPay
-    #     data = {
-    #         'MerchantID': MERCHANT_ID,
-    #         'MerchantTradeNo': str(order_id),
-    #         'MerchantTradeDate': datetime.now().strftime('%Y/%m/%d %H:%M:%S'),
-    #         'PaymentType': 'aio',
-    #         'TotalAmount': str(total_amount),
-    #         'TradeDesc': 'Your trade description',
-    #         'ItemName': 'Your item name',
-    #         'ReturnURL': RETURN_URL,
-    #         'ClientBackURL': CLIENT_BACK_URL,
-    #         'ChoosePayment': payment_method,
-    #         'EncryptType': '1'
-    #     }
-
-    #     # Generate CheckMacValue
-    #     data_str = '&'.join([f'{key}={data[key]}' for key in sorted(data)])
-    #     check_mac_value = 'HashKey=' + HASH_KEY + '&' + data_str + '&' + 'HashIV=' + HASH_IV
-    #     check_mac_value = hashlib.sha256(check_mac_value.encode('utf-8')).hexdigest().upper()
-
-    #     data['CheckMacValue'] = check_mac_value
-
-    #     # Send the request to ECPay
-    #     response = requests.post(ORDER_URL, data=data)
-
-    #     # Redirect the user to the payment page
-    #     return redirect(response.text)
-    # else:
-    #     # Handle invalid request method
-    #     return "Method not allowed", 405
-
-
+"""---------------------------------------管理者系統介面----------------------------------------------"""
 @admin_bp.before_request
 def restrict_to_admins():
     if not current_user.is_authenticated or not current_user.is_admin:
@@ -350,6 +517,7 @@ def manage_products():
     products = query.paginate(page=page, per_page=per_page, error_out=False)
     return render_template('admin/manage_products.html', products=products)
 
+"""---------------------------------------增加新產品----------------------------------------------"""
 @admin_bp.route('/add_product', methods=['POST'])
 @login_required
 def add_product():
@@ -367,6 +535,7 @@ def add_product():
         return redirect(url_for('admin.manage_products'))
     return redirect(url_for('admin.manage_products'))
 
+"""---------------------------------------修改產品----------------------------------------------"""
 @admin_bp.route('/edit_product/<int:product_id>', methods=['GET', 'POST'])
 @login_required
 def edit_product(product_id):
@@ -380,6 +549,7 @@ def edit_product(product_id):
         return redirect(url_for('admin.manage_products'))
     return render_template('admin/edit_product.html', product=product)
 
+"""---------------------------------------刪除產品----------------------------------------------"""
 @admin_bp.route('/delete_product/<int:product_id>', methods=['POST'])
 @login_required
 def delete_product(product_id):
@@ -389,12 +559,93 @@ def delete_product(product_id):
     flash('產品已成功刪除！', 'success')
     return redirect(url_for('admin.manage_products'))
 
+"""---------------------------------------訂單管理----------------------------------------------"""
 @admin_bp.route('/manage_orders')
 @login_required
 def manage_orders():
-    orders = Order.query.all()
-    return render_template('admin/manage_orders.html', orders=orders)
+    import sqlite3
 
+    conn = sqlite3.connect('site.db')
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        SELECT 
+            o.id, o.total_amount, o.status, o.created_at, o.size, o.order_number, 
+            u.username, u.phone, u.address
+        FROM "order" o
+        JOIN "user" u ON o.user_id = u.id;
+    ''')
+    orders = cursor.fetchall()
+
+    cursor.execute('''
+        SELECT 
+            order_id, product_name, quantity, size, price
+        FROM order_item
+        WHERE order_id IN (SELECT id FROM "order");
+    ''')
+    order_items = cursor.fetchall()
+
+    order_items_dict = {}
+    for item in order_items:
+        order_id = item[0]
+        if order_id not in order_items_dict:
+            order_items_dict[order_id] = []
+        order_items_dict[order_id].append({
+            'product_name': item[1],
+            'quantity': item[2],
+            'size': item[3],
+            'price': item[4]
+        })
+
+    conn.close()
+    
+    return render_template('admin/manage_orders.html', orders=orders, order_item_dict=order_items_dict)
+
+@admin_bp.route('/order_items/<int:order_id>')
+@login_required
+def order_items(order_id):
+    import sqlite3
+    from flask import jsonify
+    conn = sqlite3.connect('site.db')
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT * FROM order_item WHERE order_id = ?;', (order_id,))
+    order_items = cursor.fetchall()
+
+    items = [
+        {
+            'product_name': item[3],
+            'quantity': item[4],
+            'size': item[5],
+            'price': item[6]
+        }
+        for item in order_items
+    ]
+
+    conn.close()
+
+    return jsonify({'items': items})
+
+
+@admin_bp.route('/delete_order/<int:order_id>', methods=['POST'])
+@login_required
+def delete_order(order_id):
+    order = Order.query.get(order_id)
+    if order is None:
+        flash('Order not found.', 'error')
+        return redirect(url_for('admin.manage_orders'))
+    try:
+        OrderItem.query.filter_by(order_id=order_id).delete()
+        db.session.delete(order)
+        db.session.commit()
+        flash('Order and its items deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'An error occurred: {e}', 'error')
+    
+    return redirect(url_for('admin.manage_orders'))
+
+"""---------------------------------------用戶管理----------------------------------------------"""
 @admin_bp.route('/manage_users')
 @login_required
 def manage_users():

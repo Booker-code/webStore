@@ -16,14 +16,14 @@
     </div>
     <div>
         {{ form.email.label }}
-        {{ form.email(size=32) }}
+        {{ form.email(size=30) }}
         {% for error in form.email.errors %}
             <span class="error">{{ error }}</span>
         {% endfor %}
     </div>
     <div>
         {{ form.password.label }}
-        {{ form.password(size=32) }}
+        {{ form.password(size=10) }}
         {% for error in form.password.errors %}
             <span class="error">{{ error }}</span>
         {% endfor %}
@@ -38,7 +38,7 @@
     <!-- 新增電話和地址欄位 -->
     <div>
         {{ form.phone.label }}
-        {{ form.phone(size=32) }}
+        {{ form.phone(size=10) }}
         {% for error in form.phone.errors %}
             <span class="error">{{ error }}</span>
         {% endfor %}

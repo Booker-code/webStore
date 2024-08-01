@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField,TextAreaField
 from wtforms.validators import DataRequired, Email, EqualTo, Length
 
 class RegistrationForm(FlaskForm):
@@ -7,8 +7,8 @@ class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('密碼', validators=[DataRequired(), Length(min=6)])
     confirm_password = PasswordField('確認密碼', validators=[DataRequired(), EqualTo('password')])
-    phone = StringField('電話號碼')  # 新增電話欄位
-    address = StringField('地址')  # 新增地址欄位
+    phone = StringField('電話號碼')  
+    address = StringField('地址')  
     submit = SubmitField('送出')
 
 class LoginForm(FlaskForm):
@@ -33,3 +33,10 @@ class UpdateProfileForm(FlaskForm):
     phone = StringField('電話號碼')  # 新增電話欄位
     address = StringField('地址')  # 新增地址欄位
     submit = SubmitField('Update Profile')
+
+class ContactForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    message = TextAreaField('Message', validators=[DataRequired()])
+    submit = SubmitField('Send')   
+        

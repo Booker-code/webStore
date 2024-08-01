@@ -1,0 +1,30 @@
+<!-- templates/admin/order_detail.html -->
+{% extends "admin/admin_base.html" %}
+
+{% block content %}
+<h2>Order Details</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Product Name</th>
+            <th>Quantity</th>
+            <th>Size</th>
+            <th>Price</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in order.items %}
+        <tr>
+            <td>{{ item.product.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.size }}</td>
+            <td>{{ item.product.price }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<div>
+    <h3>Total Amount: {{ order.total_amount }}</h3>
+</div>
+<a href="{{ url_for('admin.manage_orders') }}" class="btn btn-secondary">Back to Orders</a>
+{% endblock %}

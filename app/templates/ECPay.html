@@ -1,0 +1,17 @@
+<!-- ecpay_payment.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ECPay Payment</title>
+</head>
+<body>
+    <form id="ecpay-form" method="POST" action="https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5">
+        {{ ecpay_form|safe }}
+        <button type="submit">Pay with ECPay</button>
+    </form>
+    <script>
+        document.getElementById('ecpay-form').submit();
+    </script>
+</body>
+</html>

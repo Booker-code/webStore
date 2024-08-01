@@ -10,7 +10,7 @@
             <tr>
                 <th align="center">圖片</th>
                 <th align="center">產品</th>
-                <th align="center">尺寸</th>  <!-- 新增尺寸標題 -->
+                <th align="center">尺寸</th> 
                 <th align="center">數量</th>
                 <th align="center">價格</th>
                 <th align="center">總額</th>
@@ -22,7 +22,7 @@
             <tr>
                 <td><img src="{{ item.product.photo }}" alt="{{ item.product.name }}" class="product-image cart-image"></td>
                 <td>{{ item.product.name }}</td>
-                <td>{{ item.size }}</td>  <!-- 新增尺寸數據 -->
+                <td>{{ item.size }}</td> 
                 <td>
                     <form action="{{ url_for('main.update_cart', item_id=item.id) }}" method="post">
                         <input type="number" name="quantity" value="{{ item.quantity }}" min="1">

@@ -1,27 +1,143 @@
 {% extends "base.html" %}
 {% block title %}Checkout{% endblock %}
 {% block content %}
+<style>
+   
+
+    h2{
+        text-align: center;
+        font-size: 30px;
+    }
+    p {
+        text-align: center;
+        font-size: 20px;
+    }
+
+    .form-container {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        background-color: #ffffff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-container form {
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .mb-3 {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        text-align: center;
+        font-size: 20px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075);
+        text-align: center;
+    }
+
+  .button-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 20px;
+    }
+
+    .btn-primary {
+        display: inline-block;
+        font-weight: 300;
+        color: #fff;
+        text-align: center;
+        vertical-align: middle;
+        user-select: none;
+        background-color: #007bff;
+        border: 1px solid #007bff;
+        padding: 10px;
+        font-size: 1rem;
+        line-height: 1;
+        border-radius: 10px;
+        transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .btn-primary:hover {
+        color: #fff;
+        background-color: #0056b3;
+        border-color: #004085;
+    }
+
+    tr,th{
+        border: 2px black solid;
+    }
+    td{
+        border: 2px black solid;
+        
+    }
+	@media (max-width: 768px) {
+        .btn-primary {
+            width: 100%;
+            font-size: 0.9rem;
+            padding: 10px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .form-container {
+            width: 90%;
+            margin: 20px auto;
+        }
+        .form-control {
+            font-size: 0.9rem;
+        }
+        .btn-primary {
+            width: 100%;
+            font-size: 0.8rem;
+            padding: 8px;
+        }
+    }
+</style>
 <div class="container">
-    <h1>Checkout</h1>
-    <h2>Cart Items</h2>
+    <h2>購物車</h2>
     <div class="table-responsive">
         <table class="table">
             <thead>
                 <tr>
-                    <th>商 品 圖 片</th>
-                    <th>數 量</th>
-                    <th>產 品 名 稱</th>
-                    <th>尺 寸</th>
-                    <th>金 錢</th>
+                    <th>商品圖片</th>
+                    <th>數量</th>
+                    <th>產品名稱</th>
+                    <th>尺寸</th>
+                    <th>金額</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in cart_items %}
                 <tr>
                     <td><img src="{{ item.product.photo }}" alt="{{ item.product.name }}" class="product-image cart-image"></td>
-                    <td>{{ item.quantity }}</td>
-                    <td>{{ item.product.name }}</td>
-                    <td>{{ item.size }}</td>
+                    <td><strong>{{ item.quantity }}</strong></td>
+                    <td><strong>{{ item.product.name }}</strong></td>
+                    <td><strong>{{ item.size }}</strong></td>
                     <td>{{ item.product.price }}</td>
                 </tr>
                 {% endfor %}
@@ -31,36 +147,26 @@
     <div class="row">
         <div class="col-md-6">
             <p><strong>商品總數量：</strong>{{ cart_items|length }}</p>
-        </div>
-        <div class="col-md-6">
             <p><strong>商品總金額：</strong>{{ total }}</p>
         </div>
     </div>
-    <h2>Order Details</h2>
+    <h2>取貨資訊</h2>
     <form method="POST" action="{{ url_for('main.submit_order') }}">
         <div class="mb-3">
-            <label for="name" class="form-label">取貨名稱:</label>
+            <label for="name" class="form-label">取貨名稱 :</label>
             <input type="text" class="form-control" id="name" name="name" value="{{ current_user.username }}" readonly>
         </div>
         <div class="mb-3">
-            <label for="address" class="form-label">地址:</label>
-                <input class="form-control" id="address" name="address" value="{{ current_user.address }}" readonly>
-            </div>
+            <label for="address" class="form-label">地址 :</label>
+            <input class="form-control" id="address" name="address" value="{{ current_user.address }}" readonly>
         </div>
         <div class="mb-3">
-            <label for="phone" class="form-label">電話:</label>
-            <input class="form-control" type="text"  id="phone" value="{{ current_user.phone }}" readonly>
+            <label for="phone" class="form-label">連絡電話 :</label>
+            <input class="form-control" type="text" id="phone" value="{{ current_user.phone }}" readonly>
         </div>
-        <div class="mb-3">
-            <label for="payment_method" class="form-label">付款方式:</label>
-            <select class="form-select" id="payment_method" name="payment_method" required>
-                <option value="credit_card">信用卡</option>
-                <option value="paypal">行動支付</option>
-                <!-- Add more options if needed -->
-            </select>
+        <div class="button-container">
+            <button type="submit" class="btn btn-primary">送出</button>
         </div>
-        
-        <button type="submit" class="btn btn-primary">Submit Order</button>
     </form>
 </div>
 {% endblock %}
@@ -77,4 +183,5 @@
             }
         });
     });
+
 </script>

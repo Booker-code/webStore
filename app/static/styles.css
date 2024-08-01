@@ -76,7 +76,7 @@ nav ul li a {
 }
 
 .product-image {
-    width: 100%;
+    width: 30%;
     height: auto;
 }
 
@@ -164,8 +164,4 @@ button {
 
 button:hover {
     background-color: #c0392b;
-}
-.cart-image {
-    width: 100px; /* Set a specific width for the images */
-    height: auto; /* Maintain aspect ratio */
 }

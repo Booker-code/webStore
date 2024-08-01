@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Order Completed{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>購物清單 訂單編號是: {{ order_number }}</h1>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>商品名稱</th>
+                    <th>商品尺寸</th>
+                    <th>商品價格</th>
+                    <th>商品數量</th>
+                    <th>價格小記</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_items %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.size }}</td>
+                    <td>{{ item.product.price }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.subtotal }}</td>
+                </tr>
+                {% endfor %} 
+            </tbody>
+        </table>
+    </div>
+    <h2>總計: {{ total }}</h2>
+</div>
+{% endblock %}

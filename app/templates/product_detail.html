@@ -48,7 +48,7 @@
                 <p class="product-price">NT${{ product.price }}</p>
                 <form action="{{ url_for('main.add_to_cart', product_id=product.id) }}" method="post" class="add-to-cart-form">
                     <input type="hidden" name="quantity" value="1">
-                    <button type="submit" class="add-to-cart-btn" style="background-color: #ff6600; color: #fff; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer;">加入購物車</button>
+                    
                 </form>
             </div>
         {% endfor %}
